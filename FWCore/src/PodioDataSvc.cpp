@@ -28,9 +28,21 @@ StatusCode PodioDataSvc::finalize()    {
 }
 
 StatusCode PodioDataSvc::clearStore()    {
+  for (auto& collNamePair : m_collections) {
+    if (collNamePair.second != nullptr) {
+      collNamePair.second->clear();
+    }
+  }
   DataSvc::clearStore().ignore();
   m_collections.clear();
   return StatusCode::SUCCESS ;
+}
+
+void PodioDataSvc::setCollectionIDs(podio::CollectionIDTable* collectionIds) {
+  if (m_collectionIDs != nullptr) {
+    delete m_collectionIDs;
+  }
+  m_collectionIDs = collectionIds;
 }
 
 /// Standard Constructor
@@ -44,9 +56,9 @@ PodioDataSvc::~PodioDataSvc() {
 
 StatusCode PodioDataSvc::registerObject(  const std::string& fullPath, DataObject* pObject ) {
   DataWrapperBase* wrapper = dynamic_cast<DataWrapperBase*>(pObject);
-  if (wrapper){
+  if (wrapper != nullptr) {
     podio::CollectionBase* coll = wrapper->collectionBase();
-    if (coll!=0){
+    if (coll != nullptr) {
       size_t pos = fullPath.find_last_of("/");
       std::string shortPath(fullPath.substr(pos+1,fullPath.length()));
       int id = m_collectionIDs->add(shortPath);
@@ -56,3 +68,4 @@ StatusCode PodioDataSvc::registerObject(  const std::string& fullPath, DataObjec
   }
   return DataSvc::registerObject(fullPath,pObject);
 }
+
